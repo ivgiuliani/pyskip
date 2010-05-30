@@ -1,0 +1,4 @@
+Pyskip is a CPython extension module that allows the use skip lists as
+dictionaries.
+This is an experimental project, indeed it's still considerably slower
+than classical python dictionaries.
