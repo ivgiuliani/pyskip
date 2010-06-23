@@ -7,7 +7,7 @@
 #define MAX_LEVELS 32
 
 typedef struct _skipitem {
-  PyObject *key;
+  long key_hash;
   PyObject *value;
   struct _skipitem **next;
 } skipitem;
@@ -19,7 +19,7 @@ typedef struct {
 
 void skip_printall(skiplist *);
 
-skipitem *skipitem_new(PyObject *, PyObject *, int);
+skipitem *skipitem_new(long, PyObject *, int);
 void skipitem_free(skipitem *);
 
 int skip_random_level(void);

@@ -2,8 +2,6 @@
 
 #include "skip.h"
 
-#define PYOBJ_EQ(ob1, ob2) PyObject_RichCompareBool(ob1, ob2, Py_EQ)
-
 typedef struct {
   PyObject_HEAD
   unsigned int level;
@@ -25,31 +23,35 @@ skip_is_empty(SkipDict *self) {
 /* Find the previous pointer to the item we're looking for
  * or where the item should be inserted
  */
-#define SKIP_FIND_PREV(item, level) do {\
+#define SKIP_FIND_PREV(item, level, hash) do {\
   while ((item->next[level] != NULL) && \
-         (PyObject_RichCompareBool(item->next[level]->key, key, Py_LT))) { \
+         (item->next[level]->key_hash < hash)) { \
     item = item->next[level]; \
   } \
 } while(0);
 
-/* Returns the value of the key `key` or -1 if it doesn't exist */
+/* Returns the value of the key `key` or Py_None if it doesn't exist */
 static PyObject *
 skip_get(SkipDict *self, PyObject *key) {
   skipitem *item = self->header;
   int i;
+  long hash;
 
   if (skip_is_empty(self)) {
     Py_INCREF(Py_None);
     return Py_None;
   }
 
+  hash = PyObject_Hash(key);
+
   for (i = self->level - 1; i >= 0; i--) {
-    SKIP_FIND_PREV(item, i);
+    SKIP_FIND_PREV(item, i, hash);
   }
 
   item = item->next[0];
 
-  if (item && (PYOBJ_EQ(item->key, key))) {
+  if (item && hash == item->key_hash) {
+    Py_INCREF(item->value);
     return item->value;
   } else {
     Py_INCREF(Py_None);
@@ -63,18 +65,21 @@ skip_del(SkipDict *self, PyObject *key) {
   skipitem *item = self->header;
   skipitem *update[MAX_LEVELS];
   int i;
+  long hash;
 
   if (skip_is_empty(self)) return;
 
+  hash = PyObject_Hash(key);
+
   for (i = self->level - 1; i >= 0; i--) {
-    SKIP_FIND_PREV(item, i);
+    SKIP_FIND_PREV(item, i, hash);
     update[i] = item;
   }
 
   item = item->next[0];
 
   /* delete the item only if the key already exists, otherwise just ignore it */
-  if (item && (PYOBJ_EQ(item->key, key))) {
+  if (item && hash == item->key_hash) {
     for (i = 0; i < self->level; i++) {
       if (update[i]->next[i] != item) break;
       update[i]->next[i] = item->next[i];
@@ -87,7 +92,6 @@ skip_del(SkipDict *self, PyObject *key) {
     }
   }
 }
-
 
 static int
 SkipDict_init(SkipDict *self, PyObject *args, PyObject *kwargs) {
@@ -138,11 +142,15 @@ SkipDict_set(SkipDict *self, PyObject *args) {
   skipitem *item = self->header;
   skipitem *update[MAX_LEVELS];
   int i, level;
+  long hash;
 
   if (!PyArg_ParseTuple(args, "OO", &key, &value)) {
-    PyErr_SetString(PyExc_SyntaxError, "Parameters missing");
+    PyErr_SetString(PyExc_SyntaxError, "Missing parameters");
     return NULL;
   }
+
+  /* Do not use the key directly but rather store its hash */
+  hash = PyObject_Hash(key);
 
   level = skip_random_level();
 
@@ -150,7 +158,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     for (i = 0; i < self->level; i++) update[i] = self->header;
   } else {
     for (i = self->level - 1; i >= 0; i--) {
-      SKIP_FIND_PREV(item, i);
+      SKIP_FIND_PREV(item, i, hash);
   
       /* Keep a list of the rightmost pointers to the various levels
        * before the key we're searching for (we need this list to
@@ -162,8 +170,10 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     item = item->next[0];
 
     /* the key already exists, just update its value */
-    if (item && (PYOBJ_EQ(item->key, key))) {
+    if (item && hash == item->key_hash) {
+      Py_DECREF(item->value);
       item->value = value;
+      Py_INCREF(item->value);
       Py_INCREF(Py_None);
       return Py_None;
     }
@@ -179,7 +189,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
   }
 
   /* create the item and update the pointers */
-  item = skipitem_new(key, value, level);
+  item = skipitem_new(hash, value, level);
   for (i = 0; i < level; i++) {
     item->next[i] = update[i]->next[i];
     update[i]->next[i] = item;
@@ -299,16 +309,15 @@ initskip(void) {
  * to the newly allocated memory area
  */
 skipitem *
-skipitem_new(PyObject *key, PyObject *value, int level) {
+skipitem_new(long key_hash, PyObject *value, int level) {
   int i;
   skipitem *item = PyMem_New(skipitem, 1);
   if (item == NULL)
     return NULL;
 
-  Py_INCREF(key);
   Py_INCREF(value);
 
-  item->key = key;
+  item->key_hash = key_hash;
   item->value = value;
 
   item->next = PyMem_Malloc((level + 1) * sizeof(skipitem *));
