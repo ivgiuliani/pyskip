@@ -31,11 +31,6 @@ skip_get(SkipDict *self, PyObject *key) {
   int i;
   register long hash;
 
-  if (skip_is_empty(self)) {
-    PyErr_SetObject(PyExc_KeyError, key);
-    return NULL;
-  }
-
   hash = PyObject_Hash(key);
 
   for (i = self->level - 1; i >= 0; i--) {
@@ -61,8 +56,6 @@ skip_del(SkipDict *self, PyObject *key) {
   skipitem *update[MAX_LEVELS];
   int i;
   long hash;
-
-  if (skip_is_empty(self)) return;
 
   hash = PyObject_Hash(key);
 
