@@ -1,57 +1,51 @@
 #!/usr/bin/env python
+import gc
 import sys
 import time
-import gc
+from functools import wraps
 from skip import SkipDict
 
+class timed(object):
+    def __init__(self, output=sys.stdout):
+        self.output = output
+
+    def __call__(self, f, *args, **kwargs):
+        def wrapper(test_name, *args, **kwargs):
+            start = time.time()
+            f(*args, **kwargs)
+            stop = time.time()
+            self.output.write("{0:20}: {1} seconds\n".format(test_name, stop - start, ))
+        return wrapper
+
+
 def speed_test(output=sys.stdout):
-    s = SkipDict()
-    output.write("Skipdict: ")
-    start = time.time()
-    for i in xrange(1, 1000000):
-        s.set(i, i)
-    stop = time.time()
-    output.write("Time to add 1000000 items: %d secs\n" % (stop - start, ))
+    skip, dictionary = SkipDict(), {}
 
-    d = {}
+    @timed(output=output)
+    def test_add(d):
+        "Add 1000000 items to the dictionary"
+        for i in xrange(1, 1000000):
+            d[i] = i
 
-    start = time.time()
-    output.write("Dict: ")
-    for i in xrange(1, 1000000):
-        d[i] = i
-    stop = time.time()
-    output.write("Time to add 1000000 items: %d secs\n" % (stop - start, ))
+    @timed(output=output)
+    def test_find(d):
+        "Find 100000 items in the dictionary"
+        for i in xrange(1, 1000000):
+            assert(d[i] == i)
 
-    start = time.time()
-    output.write("Skipdict: ")
-    for i in xrange(1, 1000000):
-        assert(s.get(i) == i)
-    stop = time.time()
-    output.write("Time to find 1000000 items: %d secs\n" % (stop - start, ))
+    @timed(output=output)
+    def test_length(d):
+        "Count items in the dictionary"
+        assert(len(d) == 999999)
 
-    start = time.time()
-    output.write("Dict: ")
-    for i in xrange(1, 1000000):
-        d[i]
-    stop = time.time()
-    output.write("Time to find 1000000 items: %d secs\n" % (stop - start, ))
+    test_add("SkipDict item add", skip)
+    test_add("Dict item add", dictionary)
 
-    start = time.time()
-    output.write("SkipDict: ")
-    assert(len(s) == 999999)
-    stop = time.time()
-    output.write("Time to calculate length of 1000000 items: %d secs\n" % (stop - start, ))
+    test_find("SkipDict item find", skip)
+    test_find("Dict item find", dictionary)
 
-    start = time.time()
-    output.write("Dict: ")
-    assert(len(d) == 999999)
-    stop = time.time()
-    output.write("Time to calculate length of 1000000 items: %d secs\n" % (stop - start, ))
-
-    del d
-
-    gc.collect()
-    print sys.getrefcount(s)
+    test_length("SkipDict len", skip)
+    test_length("Dict len", dictionary)
 
 def main(args):
     speed_test()
