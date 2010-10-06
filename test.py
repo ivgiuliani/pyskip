@@ -18,25 +18,25 @@ class timed(object):
         return wrapper
 
 
-def speed_test(output=sys.stdout):
+def speed_test(items=1000000, output=sys.stdout):
     skip, dictionary = SkipDict(), {}
 
     @timed(output=output)
     def test_add(d):
         "Add 1000000 items to the dictionary"
-        for i in xrange(1, 1000000):
+        for i in xrange(1, items):
             d[i] = i
 
     @timed(output=output)
     def test_find(d):
         "Find 100000 items in the dictionary"
-        for i in xrange(1, 1000000):
+        for i in xrange(1, items):
             assert(d[i] == i)
 
     @timed(output=output)
     def test_length(d):
         "Count items in the dictionary"
-        assert(len(d) == 999999)
+        assert(len(d) == (items - 1))
 
     test_add("SkipDict item add", skip)
     test_add("Dict item add", dictionary)
