@@ -14,7 +14,7 @@ class timed(object):
             start = time.time()
             f(*args, **kwargs)
             stop = time.time()
-            self.output.write("{0:20}: {1} seconds\n".format(test_name, stop - start, ))
+            self.output.write("{0:35}: {1:6.6f} seconds\n".format(test_name, stop - start, ))
         return wrapper
 
 
@@ -22,7 +22,7 @@ def speed_test(items=1000000, output=sys.stdout):
     skip, dictionary = SkipDict(), {}
 
     @timed(output=output)
-    def test_add(d):
+    def test_add(d, items):
         "Add 1000000 items to the dictionary"
         for i in xrange(1, items):
             d[i] = i
@@ -34,18 +34,25 @@ def speed_test(items=1000000, output=sys.stdout):
             assert(d[i] == i)
 
     @timed(output=output)
-    def test_length(d):
+    def test_length(d, items):
         "Count items in the dictionary"
-        assert(len(d) == (items - 1))
+        assert(len(d) == items)
 
-    test_add("SkipDict item add", skip)
-    test_add("Dict item add", dictionary)
+    test_add("SkipDict item add", skip, items)
+    test_add("Dict item add", dictionary, items)
 
     test_find("SkipDict item find", skip)
     test_find("Dict item find", dictionary)
 
-    test_length("SkipDict len", skip)
-    test_length("Dict len", dictionary)
+    test_length("SkipDict len", skip, items - 1)
+    test_length("Dict len", dictionary, items - 1)
+
+    test_add("SkipDict item successive large add", skip, items * 2)
+    test_add("Dict item successive large add", dictionary, items * 2)
+
+    test_length("SkipDict len", skip, items * 2 - 1)
+    test_length("Dict len", dictionary, items * 2 - 1)
+
 
 def main(args):
     speed_test()
