@@ -24,7 +24,7 @@ skip_is_empty(SkipDict *self) {
   } \
 } while(0);
 
-/* Returns the value of the key `key` or Py_None if it doesn't exist */
+/* Returns the value of the key `key` or raise a KeyError if it doesn't exist */
 static PyObject *
 skip_get(SkipDict *self, PyObject *key) {
   skipitem *item = self->header;
@@ -32,7 +32,8 @@ skip_get(SkipDict *self, PyObject *key) {
   register long hash;
 
   if (skip_is_empty(self)) {
-    Py_RETURN_NONE;
+    PyErr_SetObject(PyExc_KeyError, key);
+    return NULL;
   }
 
   hash = PyObject_Hash(key);
@@ -48,7 +49,9 @@ skip_get(SkipDict *self, PyObject *key) {
     return item->value;
   }
 
-  Py_RETURN_NONE;
+  /* the key we're looking for is not in the skipdict */
+  PyErr_SetObject(PyExc_KeyError, key);
+  return NULL;
 }
 
 /* Deletes the item with the key `key` from the skiplist */
