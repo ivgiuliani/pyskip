@@ -26,10 +26,10 @@ skip_is_empty(SkipDict *self) {
 
 /* Returns the value of the key `key` or Py_None if it doesn't exist */
 static PyObject *
-skip_get(SkipDict *self, register PyObject *key) {
+skip_get(SkipDict *self, PyObject *key) {
   skipitem *item = self->header;
   int i;
-  long hash;
+  register long hash;
 
   if (skip_is_empty(self)) {
     Py_RETURN_NONE;
@@ -46,9 +46,9 @@ skip_get(SkipDict *self, register PyObject *key) {
   if (item && hash == item->key_hash) {
     Py_INCREF(item->value);
     return item->value;
-  } else {
-    Py_RETURN_NONE;
   }
+
+  Py_RETURN_NONE;
 }
 
 /* Deletes the item with the key `key` from the skiplist */
