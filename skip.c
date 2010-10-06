@@ -2,12 +2,6 @@
 
 #include "skip.h"
 
-typedef struct {
-  PyObject_HEAD
-  unsigned int level;
-  skipitem *header;
-} SkipDict;
-
 /* Returns a pointer to the first item in the list */
 static inline skipitem *
 skip_first(SkipDict *self) {
@@ -88,6 +82,7 @@ skip_del(SkipDict *self, PyObject *key) {
     while (self->level > 1 && self->header->next[self->level - 1] == NULL) {
       self->level--;
     }
+    self->items_used--;
   }
 }
 
@@ -97,6 +92,7 @@ SkipDict_init(SkipDict *self, PyObject *args, PyObject *kwargs) {
   int i;
 
   self->level = 1;
+  self->items_used = 0;
 
   /* We need to allocate just enough memory to hold pointers to real
    * items for the various levels so we can start our search from there.
@@ -190,6 +186,8 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     item->next[i] = update[i]->next[i];
     update[i]->next[i] = item;
   }
+  /* increment items count */
+  self->items_used++;
 
   Py_RETURN_NONE;
 }
@@ -231,12 +229,12 @@ SkipDict_keys(SkipDict *self, PyObject *args) {
 
 static PyObject *
 SkipDict_length(SkipDict *self) {
-  return Py_BuildValue("i", skip_length(self->header));
+  return Py_BuildValue("i", skip_length(self));
 }
 
 static Py_ssize_t
 SkipDict_length_map(SkipDict *self) {
-  return (Py_ssize_t)skip_length(self->header);
+  return (Py_ssize_t)skip_length(self);
 }
 
 
@@ -365,18 +363,8 @@ skip_random_level() {
 }
 
 /* Returns skipdict's length (number of keys in the skipdict) */
-int
-skip_length(skipitem *header) {
-  /* TODO: We should make this O(1) by keeping count of
-   *       how many items we store through set/del
-   */
-  skipitem *item = header->next[0];
-  int counter = 0;
-
-  while (item != NULL) {
-    item = item->next[0];
-    counter++;
-  }
-  return counter;
+inline int
+skip_length(SkipDict *skip) {
+  return skip->items_used;
 }
 

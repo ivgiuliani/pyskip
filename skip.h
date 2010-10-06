@@ -17,12 +17,19 @@ typedef struct {
   skipitem *header;
 } skiplist;
 
+typedef struct {
+  PyObject_HEAD
+  unsigned int level;
+  unsigned int items_used;
+  skipitem *header;
+} SkipDict;
+
 void skip_printall(skiplist *);
 
 skipitem *skipitem_new(long, PyObject *, int);
 void skipitem_free(skipitem *);
 
 int skip_random_level(void);
-int skip_length(skipitem *);
+inline int skip_length(SkipDict *);
 
 #endif /* SKIP_H */
