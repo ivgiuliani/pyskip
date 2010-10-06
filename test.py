@@ -4,46 +4,46 @@ import time
 import gc
 from skip import SkipDict
 
-def speed_test():
+def speed_test(output=sys.stdout):
     s = SkipDict()
-    print "Skipdict: ",
+    output.write("Skipdict: ")
     start = time.time()
     for i in xrange(1, 1000000):
         s.set(i, i)
     stop = time.time()
-    print "Time to add 1000000 items: %d secs" % (stop - start, )
+    output.write("Time to add 1000000 items: %d secs\n" % (stop - start, ))
 
     d = {}
 
     start = time.time()
-    print "Dict: ",
+    output.write("Dict: ")
     for i in xrange(1, 1000000):
         d[i] = i
     stop = time.time()
-    print "Time to add 1000000 items: %d secs" % (stop - start, )
+    output.write("Time to add 1000000 items: %d secs\n" % (stop - start, ))
 
     start = time.time()
-    print "Skipdict: ",
+    output.write("Skipdict: ")
     for i in xrange(1, 1000000):
         assert(s.get(i) == i)
     stop = time.time()
-    print "Time to find 1000000 items: %d secs" % (stop - start, )
+    output.write("Time to find 1000000 items: %d secs\n" % (stop - start, ))
 
     start = time.time()
-    print "Dict: ",
+    output.write("Dict: ")
     for i in xrange(1, 1000000):
         d[i]
     stop = time.time()
-    print "Time to find 1000000 items: %d secs" % (stop - start, )
+    output.write("Time to find 1000000 items: %d secs\n" % (stop - start, ))
 
-    #del s
     del d
 
     gc.collect()
     print sys.getrefcount(s)
 
-def main():
+def main(args):
     speed_test()
+    return False
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main(sys.argv))
