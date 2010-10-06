@@ -39,8 +39,7 @@ skip_get(SkipDict *self, register PyObject *key) {
   int i;
 
   if (skip_is_empty(self)) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   }
 
   for (i = self->level - 1; i >= 0; i--) {
@@ -52,8 +51,7 @@ skip_get(SkipDict *self, register PyObject *key) {
   if (item && (PYOBJ_EQ(item->key, key))) {
     return item->value;
   } else {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   }
 }
 
@@ -164,8 +162,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     /* the key already exists, just update its value */
     if (item && (PYOBJ_EQ(item->key, key))) {
       item->value = value;
-      Py_INCREF(Py_None);
-      return Py_None;
+      Py_RETURN_NONE;
     }
   }
   
@@ -185,8 +182,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     update[i]->next[i] = item;
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 static PyObject *
@@ -211,8 +207,8 @@ SkipDict_pop(SkipDict *self, PyObject *args) {
 
 static PyObject *
 SkipDict_keys(SkipDict *self, PyObject *args) {
-  Py_INCREF(Py_None);
-  return Py_None;
+  /* TODO */
+  Py_RETURN_NONE;
 }
 
 static PyMethodDef
