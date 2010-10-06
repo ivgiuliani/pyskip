@@ -34,7 +34,7 @@ skip_is_empty(SkipDict *self) {
 
 /* Returns the value of the key `key` or -1 if it doesn't exist */
 static PyObject *
-skip_get(SkipDict *self, PyObject *key) {
+skip_get(SkipDict *self, register PyObject *key) {
   skipitem *item = self->header;
   int i;
 
@@ -140,7 +140,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
   int i, level;
 
   if (!PyArg_ParseTuple(args, "OO", &key, &value)) {
-    PyErr_SetString(PyExc_SyntaxError, "Parameters missing");
+    PyErr_SetString(PyExc_SyntaxError, "Assignment parameters missing");
     return NULL;
   }
 
@@ -190,14 +190,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
 }
 
 static PyObject *
-SkipDict_get(SkipDict *self, PyObject *args) {
-  PyObject *key;
-
-  if (!PyArg_ParseTuple(args, "O", &key)) {
-    PyErr_SetString(PyExc_SyntaxError, "Parameters missing");
-    return NULL;
-  }
-
+SkipDict_get(SkipDict *self, PyObject *key) {
   return skip_get(self, key);;
 }
 
@@ -224,7 +217,7 @@ SkipDict_keys(SkipDict *self, PyObject *args) {
 
 static PyMethodDef
 SkipDict_methods[] = {
-  { "get", (PyCFunction)SkipDict_get, METH_VARARGS,
+  { "get", (PyCFunction)SkipDict_get, METH_O | METH_COEXIST,
            "Get key's value" },
   { "set", (PyCFunction)SkipDict_set, METH_VARARGS,
            "Set the value of a key" },
@@ -233,12 +226,12 @@ SkipDict_methods[] = {
            "If key is not found, KeyError is raised."},
   { "keys", (PyCFunction)SkipDict_keys, METH_VARARGS,
             "Returns an iterator over the keys of the dictionary" },
+
+  /* slice methods */
+  { "__getitem__", (PyCFunction)SkipDict_get, METH_O | METH_COEXIST, 0 },
+  { "__setitem__", (PyCFunction)SkipDict_set, METH_VARARGS | METH_COEXIST, 0 },
   { NULL }
 };
-
-//static PyMemberDef SkipDict_members[] = {
-//  { NULL }
-//};
 
 static PyTypeObject
 SkipDict_Type = {
@@ -271,7 +264,7 @@ SkipDict_Type = {
   0,                            /* tp_iter */
   0,                            /* tp_iternext */
   SkipDict_methods,             /* tp_methods */
-  NULL,             /* tp_members */
+  NULL,                         /* tp_members */
   0,                            /* tp_getset */
   0,                            /* tp_base */
   0,                            /* tp_dict */
