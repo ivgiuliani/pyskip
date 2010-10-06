@@ -54,8 +54,19 @@ def speed_test(items=1000000, output=sys.stdout):
     test_length("Dict len", dictionary, items * 2 - 1)
 
 
+def correctness_test(output=sys.stdout):
+    skip = SkipDict()
+
+    try:
+        skip["unknown key"]
+        sys.stdout.write("KeyError check NOT PASSED\n")
+    except KeyError:
+        sys.stdout.write("KeyError check ok\n")
+        pass
+
 def main(args):
     speed_test()
+    correctness_test()
     return False
 
 if __name__ == '__main__':
