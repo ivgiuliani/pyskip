@@ -50,7 +50,7 @@ skip_get(SkipDict *self, PyObject *key) {
 }
 
 /* Deletes the item with the key `key` from the skiplist */
-static void
+static PyObject *
 skip_del(SkipDict *self, PyObject *key) {
   skipitem *item = self->header;
   skipitem *update[MAX_LEVELS];
@@ -66,7 +66,9 @@ skip_del(SkipDict *self, PyObject *key) {
 
   item = item->next[0];
 
-  /* delete the item only if the key already exists, otherwise just ignore it */
+  /* delete the item only if the key already exists, otherwise
+   * raise a KeyError
+   */
   if (item && hash == item->key_hash) {
     for (i = 0; i < self->level; i++) {
       if (update[i]->next[i] != item) break;
@@ -79,7 +81,11 @@ skip_del(SkipDict *self, PyObject *key) {
       self->level--;
     }
     self->items_used--;
+    Py_RETURN_NONE;
   }
+
+  PyErr_SetObject(PyExc_KeyError, key);
+  return NULL;
 }
 
 static int
