@@ -24,8 +24,6 @@ typedef struct {
   skipitem *header;
 } SkipDict;
 
-void skip_printall(skiplist *);
-
 skipitem *skipitem_new(long, PyObject *, int);
 void skipitem_free(skipitem *);
 
