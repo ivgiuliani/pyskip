@@ -185,6 +185,15 @@ SkipDict_set(SkipDict *self, PyObject *args) {
   Py_RETURN_NONE;
 }
 
+static int
+SkipDict_setItem(SkipDict *self, PyObject *key, PyObject *value) {
+  Py_INCREF(key);
+  Py_INCREF(value);
+  if (!SkipDict_set(self, Py_BuildValue("OO", key, value)))
+    return -1;
+  return 0;
+}
+
 static PyObject *
 SkipDict_get(SkipDict *self, PyObject *key) {
   return skip_get(self, key);;
@@ -211,6 +220,17 @@ SkipDict_keys(SkipDict *self, PyObject *args) {
   Py_RETURN_NONE;
 }
 
+static PyObject *
+SkipDict_length(SkipDict *self) {
+  return Py_BuildValue("i", skip_length(self->header));
+}
+
+static Py_ssize_t
+SkipDict_length_map(SkipDict *self) {
+  return (Py_ssize_t)skip_length(self->header);
+}
+
+
 static PyMethodDef
 SkipDict_methods[] = {
   { "get", (PyCFunction)SkipDict_get, METH_O | METH_COEXIST,
@@ -223,10 +243,17 @@ SkipDict_methods[] = {
   { "keys", (PyCFunction)SkipDict_keys, METH_VARARGS,
             "Returns an iterator over the keys of the dictionary" },
 
-  /* slice methods */
+  /* special methods */
+  { "__len__", (PyCFunction)SkipDict_length, METH_NOARGS | METH_COEXIST, 0 },
   { "__getitem__", (PyCFunction)SkipDict_get, METH_O | METH_COEXIST, 0 },
   { "__setitem__", (PyCFunction)SkipDict_set, METH_VARARGS | METH_COEXIST, 0 },
   { NULL }
+};
+
+static PyMappingMethods skipdict_as_mapping = {
+  (lenfunc)SkipDict_length_map,
+  (binaryfunc)SkipDict_get,
+  (objobjargproc)SkipDict_setItem,
 };
 
 static PyTypeObject
@@ -244,7 +271,7 @@ SkipDict_Type = {
   0,                            /* tp_repr */
   0,                            /* tp_as_number */
   0,                            /* tp_as_sequence */
-  0,                            /* tp_as_mapping */
+  &skipdict_as_mapping,         /* tp_as_mapping */
   0,                            /* tp_hash */
   0,                            /* tp_call */
   0,                            /* tp_str */
@@ -314,9 +341,6 @@ skipitem_new(PyObject *key, PyObject *value, int level) {
  */
 void
 skipitem_free(skipitem *item) {
-//  Py_DECREF(item->key);
-//  Py_DECREF(item->value);
-
   PyMem_Free(item->next);
   PyMem_Free(item);
 }
@@ -330,5 +354,21 @@ skip_random_level() {
     level++;
 
   return level;
+}
+
+/* Returns skipdict's length (number of keys in the skipdict) */
+int
+skip_length(skipitem *header) {
+  /* TODO: We should make this O(1) by keeping count of
+   *       how many items we store through set/del
+   */
+  skipitem *item = header->next[0];
+  int counter = 0;
+
+  while (item != NULL) {
+    item = item->next[0];
+    counter++;
+  }
+  return counter;
 }
 

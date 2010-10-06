@@ -23,5 +23,6 @@ skipitem *skipitem_new(PyObject *, PyObject *, int);
 void skipitem_free(skipitem *);
 
 int skip_random_level(void);
+int skip_length(skipitem *);
 
 #endif /* SKIP_H */

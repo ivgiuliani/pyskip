@@ -36,6 +36,18 @@ def speed_test(output=sys.stdout):
     stop = time.time()
     output.write("Time to find 1000000 items: %d secs\n" % (stop - start, ))
 
+    start = time.time()
+    output.write("SkipDict: ")
+    assert(len(s) == 999999)
+    stop = time.time()
+    output.write("Time to calculate length of 1000000 items: %d secs\n" % (stop - start, ))
+
+    start = time.time()
+    output.write("Dict: ")
+    assert(len(d) == 999999)
+    stop = time.time()
+    output.write("Time to calculate length of 1000000 items: %d secs\n" % (stop - start, ))
+
     del d
 
     gc.collect()
