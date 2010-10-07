@@ -1,6 +1,7 @@
 *.swp
 *.so
 *.o
+*.pyc
 build
 *swp
 ENV*

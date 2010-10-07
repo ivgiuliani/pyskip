@@ -48,3 +48,9 @@ Q&A
   Short answer: no. Long answer: it's an experimental project that
   showed some interesting results but it's considerably slower than
   classical python dictionaries.
+
+- *I can't run the tests, why?*
+
+  That's probably because we rely on unittest2. See instructions on
+	how to install them here: http://pypi.python.org/pypi/unittest2
+
