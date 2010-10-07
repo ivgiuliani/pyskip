@@ -1,3 +1,7 @@
+PySkip
+======
+
+
 What is pyskip
 --------------
 Pyskip is a CPython extension module that allows the use skip lists as
@@ -25,23 +29,12 @@ Q&A
 
 - *What's the difference between a skiplist and a classic dictionary?*
 
-  Besides the complexity analysis, a skiplist saves items in sorted
+  Besides the complexity analysis, a skiplist saves keys in sorted
   order.
 
 - *So this is true with pyskip too?*
 
-  Actually, no, it isn't. Problem is that we can use as keys *every*
-  Python object. Thus, what should be the ordering relationship between
-  a class and an integer? Another reason is that in order to speed things
-  up a little we use hashes rather than *values* in the keys so the
-  real order is lost.
-
-- *Would it be possible to make pyskip works like skiplists should?*
-
-  Yes. We should get rid of the hashes and force the keys to be
-  omogeneous, i.e. you wouldn't be able to mix up classes'instances and
-  integers for example or two instance of different classes. In that way
-  it would be possible to retrieve keys in sorted order.
+  Yes. We use the order relation defined by the __lt__ method.
 
 - *Is pyskip production ready?*
 
