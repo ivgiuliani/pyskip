@@ -360,7 +360,8 @@ skipitem_free(skipitem *item) {
 int
 skip_random_level() {
   int level = 1;
-  while (((double)rand() / (RAND_MAX + 1.0) < PROB) && (level++ < MAX_LEVELS));
+  while (((double)rand() / (RAND_MAX + 1.0) < PROB) && (level < MAX_LEVELS))
+    level++;
   return level;
 }
 
