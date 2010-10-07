@@ -55,3 +55,20 @@ class BehaveLikeDictTest(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.skip["unknown"]
 
+
+class SpecialMethodsTest(unittest.TestCase):
+    "Test for the __magic__ methods"
+
+    def setUp(self):
+        self.skip = SkipDict()
+
+    def test_repr(self):
+        self.assertIn("<SkipDict: ", repr(self.skip))
+        self.assertIn("1 levels", repr(self.skip))
+        self.assertIn("0 items", repr(self.skip))
+
+        self.skip["key"] = "value"
+        self.assertIn("1 items", repr(self.skip))
+
+        self.skip["key2"] = "value2"
+        self.assertIn("2 items", repr(self.skip))
