@@ -33,6 +33,9 @@ skip_get(SkipDict *self, PyObject *key) {
 
   hash = PyObject_Hash(key);
 
+  /* Even though this may seem O(n^2) it's O(n) in the worst case
+   * and O(logn) in the average case
+   */
   for (i = self->level - 1; i >= 0; i--) {
     SKIP_FIND_PREV(item, i, hash);
   }
@@ -357,10 +360,7 @@ skipitem_free(skipitem *item) {
 int
 skip_random_level() {
   int level = 1;
-
-  while (((double)rand() / (RAND_MAX + 1.0) < PROB) && (level < MAX_LEVELS))
-    level++;
-
+  while (((double)rand() / (RAND_MAX + 1.0) < PROB) && (level++ < MAX_LEVELS));
   return level;
 }
 
