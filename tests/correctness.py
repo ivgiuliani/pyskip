@@ -88,6 +88,19 @@ class BehaveLikeDictTest(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.skip["unknown"]
 
+    def test_keys(self):
+        "Verify that .keys() returns all the inserted keys"
+        self.skip["apple"] = True
+        self.skip["lemon"] = True
+        self.skip["banana"] = True
+        self.skip["pear"] = True
+
+        keys = self.skip.keys()
+        self.assertIn("apple", keys)
+        self.assertIn("lemon", keys)
+        self.assertIn("banana", keys)
+        self.assertIn("pear", keys)
+
 
 class SpecialMethodsTest(unittest.TestCase):
     "Test for the __magic__ methods"

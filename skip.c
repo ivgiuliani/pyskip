@@ -29,9 +29,6 @@ static PyObject *
 skip_get(SkipDict *self, PyObject *key) {
   skipitem *item = self->header;
   int i;
-  register long hash;
-
-  hash = PyObject_Hash(key);
 
   /* Even though this may seem O(n^2) it's O(n) in the worst case
    * and O(logn) in the average case
@@ -234,8 +231,18 @@ SkipDict_pop(SkipDict *self, PyObject *args) {
 
 static PyObject *
 SkipDict_keys(SkipDict *self, PyObject *args) {
-  /* TODO */
-  Py_RETURN_NONE;
+  /* Returns a tuple with all the skipdict's keys */
+  PyObject *tuple = PyTuple_New(self->items_used);
+  Py_ssize_t i;
+  skipitem *item = skip_first(self);
+
+  for (i = 0; i < self->items_used; i++) {
+    Py_INCREF(item->key);
+    PyTuple_SetItem(tuple, i, item->key);
+    item = item->next[0];
+  }
+
+  return tuple;
 }
 
 static PyObject *
@@ -250,7 +257,7 @@ SkipDict_length_map(SkipDict *self) {
 
 static PyObject *
 SkipDict_repr(SkipDict *self) {
-  return PyString_FromFormat("<SkipDict: %d items/%d levels>",
+  return PyString_FromFormat("<SkipDict: %zd items/%d levels>",
                              self->items_used, self->level);
 }
 

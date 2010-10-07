@@ -15,7 +15,7 @@ typedef struct _skipitem {
 typedef struct {
   PyObject_HEAD
   unsigned int level;
-  unsigned int items_used;
+  Py_ssize_t items_used;
   skipitem *header;
   PyTypeObject *type;
 } SkipDict;
