@@ -27,6 +27,38 @@ class BasicTest(unittest.TestCase):
         self.skip["key"] = "modified"
         self.assertEqual(self.skip["key"], "modified")
 
+    def test_uniform_type(self):
+        "Check that the skipdict allows only uniform types as keys"
+
+        # declare bogus classes so we can check uniformity of keys
+        # against classes too
+        class A(object): pass
+        class B(object): pass
+
+        s1 = SkipDict()
+        s1["stringkey"] = "value"
+        s1.__setitem__(0, "value")
+        self.assertRaises(TypeError, s1.__setitem__, [0, "value"])
+        self.assertRaises(TypeError, s1.__setitem__, [A, "value"])
+        self.assertRaises(TypeError, s1.__setitem__, [A(), "value"])
+
+        s2 = SkipDict()
+        s2[A()] = "value"
+        self.assertRaises(TypeError, s2.__setitem__, [0, "value"])
+        self.assertRaises(TypeError, s2.__setitem__, ["string", "value"])
+        self.assertRaises(TypeError, s2.__setitem__, [B(), "anotherclass"])
+
+    def test_uniformity_on_subclasses(self):
+        "Check that uniformity of key types works on subclassed objects"""
+        class A(object): pass
+        class B(A): pass
+
+        self.skip[A()] = "instance of A"
+        self.skip[B()] = "instance of B"
+        self.skip[A()] = "another instance of A"
+
+        self.assertEqual(len(self.skip), 3)
+
 
 class BehaveLikeDictTest(unittest.TestCase):
     "Check that the SkipDict has the same behavior of a dictionary"
