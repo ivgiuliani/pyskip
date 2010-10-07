@@ -37,16 +37,17 @@ class BasicTest(unittest.TestCase):
 
         s1 = SkipDict()
         s1["stringkey"] = "value"
-        s1.__setitem__(0, "value")
-        self.assertRaises(TypeError, s1.__setitem__, [0, "value"])
-        self.assertRaises(TypeError, s1.__setitem__, [A, "value"])
-        self.assertRaises(TypeError, s1.__setitem__, [A(), "value"])
+        with self.assertRaises(TypeError):
+            s1[0] = "integer"
+            s1[A] = "class"
+            s1[A()] = "instance"
 
         s2 = SkipDict()
         s2[A()] = "value"
-        self.assertRaises(TypeError, s2.__setitem__, [0, "value"])
-        self.assertRaises(TypeError, s2.__setitem__, ["string", "value"])
-        self.assertRaises(TypeError, s2.__setitem__, [B(), "anotherclass"])
+        with self.assertRaises(TypeError):
+            s2[0] = "integer"
+            s2["string"] = "string"
+            s2[B()] = "anotherinstance"
 
     def test_uniformity_on_subclasses(self):
         "Check that uniformity of key types works on subclassed objects"""

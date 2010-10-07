@@ -98,6 +98,7 @@ SkipDict_init(SkipDict *self, PyObject *args, PyObject *kwargs) {
 
   self->level = 1;
   self->items_used = 0;
+  self->type = NULL;
 
   /* We need to allocate just enough memory to hold pointers to real
    * items for the various levels so we can start our search from there.
@@ -134,7 +135,7 @@ SkipDict_dealloc(SkipDict *self) {
   PyMem_Free(self->header);
 }
 
-/* Set a the key `key` to value `value` */
+/* Set the key `key` to value `value` */
 static PyObject *
 SkipDict_set(SkipDict *self, PyObject *args) {
   PyObject *key, *value;
@@ -144,7 +145,18 @@ SkipDict_set(SkipDict *self, PyObject *args) {
   long hash;
 
   if (!PyArg_ParseTuple(args, "OO", &key, &value)) {
-    PyErr_SetString(PyExc_SyntaxError, "Assignment parameters missing");
+    PyErr_SetString(PyExc_ValueError, "invalid value");
+    return NULL;
+  }
+
+  /* If there's no type set (first key to be inserted), save it */
+  if (!self->type) self->type = key->ob_type;
+
+  /* Verify that the dict contains only one type (or that the new key is
+   * a subtype of self->type
+   */
+  if ((key->ob_type != self->type) && !PyType_IsSubtype(key->ob_type, self->type)) {
+    PyErr_SetString(PyExc_TypeError, "skipdict keys can't be of different types");
     return NULL;
   }
 
@@ -285,7 +297,7 @@ SkipDict_Type = {
   0,                            /* tp_getattr */
   0,                            /* tp_setattr */
   0,                            /* tp_compare */
-  &SkipDict_repr,               /* tp_repr */
+  (reprfunc)SkipDict_repr,      /* tp_repr */
   0,                            /* tp_as_number */
   0,                            /* tp_as_sequence */
   &skipdict_as_mapping,         /* tp_as_mapping */
