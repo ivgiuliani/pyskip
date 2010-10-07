@@ -64,6 +64,12 @@ def correctness_test(output=sys.stdout):
         sys.stdout.write("KeyError check ok\n")
         pass
 
+    sys.stdout.write("Repr format: ")
+    if not repr(skip).startswith("<SkipDict"):
+        sys.stdout.write("FAILED\n")
+    else:
+        sys.stdout.write("OK\n")
+
 def main(args):
     speed_test()
     correctness_test()

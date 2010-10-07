@@ -242,6 +242,11 @@ SkipDict_length_map(SkipDict *self) {
   return (Py_ssize_t)skip_length(self);
 }
 
+static PyObject *
+SkipDict_repr(SkipDict *self) {
+  return PyString_FromFormat("<SkipDict: %d items/%d levels>",
+                             self->items_used, self->level);
+}
 
 static PyMethodDef
 SkipDict_methods[] = {
@@ -280,7 +285,7 @@ SkipDict_Type = {
   0,                            /* tp_getattr */
   0,                            /* tp_setattr */
   0,                            /* tp_compare */
-  0,                            /* tp_repr */
+  &SkipDict_repr,               /* tp_repr */
   0,                            /* tp_as_number */
   0,                            /* tp_as_sequence */
   &skipdict_as_mapping,         /* tp_as_mapping */
