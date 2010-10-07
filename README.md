@@ -34,7 +34,7 @@ Q&A
 
 - *So this is true with pyskip too?*
 
-  Yes. We use the order relation defined by the __lt__ method.
+  Yes. We use the order relation defined by the \_\_lt\_\_ method.
 
 - *Is pyskip production ready?*
 
