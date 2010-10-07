@@ -13,11 +13,6 @@ typedef struct _skipitem {
 } skipitem;
 
 typedef struct {
-  unsigned int level;
-  skipitem *header;
-} skiplist;
-
-typedef struct {
   PyObject_HEAD
   unsigned int level;
   unsigned int items_used;
