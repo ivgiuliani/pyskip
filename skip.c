@@ -17,9 +17,9 @@ skip_is_empty(SkipDict *self) {
 /* Find the previous pointer to the item we're looking for
  * or where the item should be inserted
  */
-#define SKIP_FIND_PREV(item, level, hash) do {\
+#define SKIP_FIND_PREV(item, level, key) do {\
   while ((item->next[level] != NULL) && \
-         (item->next[level]->key_hash < hash)) { \
+         (PyObject_RichCompareBool(item->next[level]->key, key, Py_LT))) { \
     item = item->next[level]; \
   } \
 } while(0);
@@ -37,12 +37,12 @@ skip_get(SkipDict *self, PyObject *key) {
    * and O(logn) in the average case
    */
   for (i = self->level - 1; i >= 0; i--) {
-    SKIP_FIND_PREV(item, i, hash);
+    SKIP_FIND_PREV(item, i, key);
   }
 
   item = item->next[0];
 
-  if (item && hash == item->key_hash) {
+  if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
     Py_INCREF(item->value);
     return item->value;
   }
@@ -58,12 +58,9 @@ skip_del(SkipDict *self, PyObject *key) {
   skipitem *item = self->header;
   skipitem *update[MAX_LEVELS];
   int i;
-  long hash;
-
-  hash = PyObject_Hash(key);
 
   for (i = self->level - 1; i >= 0; i--) {
-    SKIP_FIND_PREV(item, i, hash);
+    SKIP_FIND_PREV(item, i, key);
     update[i] = item;
   }
 
@@ -72,12 +69,13 @@ skip_del(SkipDict *self, PyObject *key) {
   /* delete the item only if the key already exists, otherwise
    * raise a KeyError
    */
-  if (item && hash == item->key_hash) {
+  if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
     for (i = 0; i < self->level; i++) {
       if (update[i]->next[i] != item) break;
       update[i]->next[i] = item->next[i];
     }
 
+    Py_DECREF(item->key);
     skipitem_free(item);
 
     while (self->level > 1 && self->header->next[self->level - 1] == NULL) {
@@ -142,7 +140,6 @@ SkipDict_set(SkipDict *self, PyObject *args) {
   skipitem *item = self->header;
   skipitem *update[MAX_LEVELS];
   int i, level;
-  long hash;
 
   if (!PyArg_ParseTuple(args, "OO", &key, &value)) {
     PyErr_SetString(PyExc_ValueError, "invalid value");
@@ -160,16 +157,13 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     return NULL;
   }
 
-  /* Do not use the key directly but rather store its hash */
-  hash = PyObject_Hash(key);
-
   level = skip_random_level();
 
   if (skip_is_empty(self)) {
     for (i = 0; i < self->level; i++) update[i] = self->header;
   } else {
     for (i = self->level - 1; i >= 0; i--) {
-      SKIP_FIND_PREV(item, i, hash);
+      SKIP_FIND_PREV(item, i, key);
   
       /* Keep a list of the rightmost pointers to the various levels
        * before the key we're searching for (we need this list to
@@ -181,7 +175,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     item = item->next[0];
 
     /* the key already exists, just update its value */
-    if (item && hash == item->key_hash) {
+    if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
       Py_DECREF(item->value);
       item->value = value;
       Py_RETURN_NONE;
@@ -198,7 +192,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
   }
 
   /* create the item and update the pointers */
-  item = skipitem_new(hash, value, level);
+  item = skipitem_new(key, value, level);
   for (i = 0; i < level; i++) {
     item->next[i] = update[i]->next[i];
     update[i]->next[i] = item;
@@ -344,15 +338,16 @@ initskip(void) {
  * to the newly allocated memory area
  */
 skipitem *
-skipitem_new(long key_hash, PyObject *value, int level) {
+skipitem_new(PyObject *key, PyObject *value, int level) {
   int i;
   skipitem *item = PyMem_New(skipitem, 1);
   if (item == NULL)
     return NULL;
 
   Py_INCREF(value);
+  Py_INCREF(key);
 
-  item->key_hash = key_hash;
+  item->key = key;
   item->value = value;
 
   item->next = PyMem_Malloc((level + 1) * sizeof(skipitem *));
