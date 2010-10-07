@@ -46,3 +46,12 @@ class BehaveLikeDictTest(unittest.TestCase):
         "Check __getitem__/__setitem__ assignment (through dict['key'])"
         self.skip["key"] = "value"
         self.assertEqual(self.skip["key"], "value")
+
+    def test_keyerror(self):
+        """
+        A SkipDict should raise a KeyError when requesting a Key that
+        has not been added to the dictionary
+        """
+        with self.assertRaises(KeyError):
+            self.skip["unknown"]
+
