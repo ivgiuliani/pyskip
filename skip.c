@@ -202,10 +202,13 @@ SkipDict_set(SkipDict *self, PyObject *args) {
 
 static int
 SkipDict_setItem(SkipDict *self, PyObject *key, PyObject *value) {
-  Py_INCREF(key);
-  Py_INCREF(value);
-  if (!SkipDict_set(self, Py_BuildValue("OO", key, value)))
-    return -1;
+  if (!value) {
+    if (!skip_del(self, key) != NULL) return -1;
+  } else {
+    Py_INCREF(key);
+    Py_INCREF(value);
+    if (!SkipDict_set(self, Py_BuildValue("OO", key, value))) return -1;
+  }
   return 0;
 }
 
@@ -281,9 +284,9 @@ SkipDict_methods[] = {
 };
 
 static PyMappingMethods skipdict_as_mapping = {
-  (lenfunc)SkipDict_length_map,
-  (binaryfunc)SkipDict_get,
-  (objobjargproc)SkipDict_setItem,
+  (lenfunc)SkipDict_length_map,    /* mp_length */
+  (binaryfunc)SkipDict_get,        /* mp_subscript */
+  (objobjargproc)SkipDict_setItem, /* mp_ass_subscript */
 };
 
 static PyTypeObject
@@ -325,8 +328,9 @@ SkipDict_Type = {
   0,                            /* tp_descr_set */
   0,                            /* tp_dictoffset */
   (initproc)SkipDict_init,      /* tp_init */
-  0,                            /* tp_alloc */
+  PyType_GenericAlloc,          /* tp_alloc */
   0,                            /* tp_new */
+  PyObject_GC_Del,              /* tp_free */
 };
 
 void

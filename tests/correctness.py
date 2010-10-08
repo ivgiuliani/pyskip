@@ -33,9 +33,10 @@ class BasicTest(unittest.TestCase):
         self.skip["key2"] = "value2"
         self.skip["key3"] = "value3"
         del self.skip["key2"]
-        self.assertRaises(KeyError, self.skip.__setitem__, "key2")
+        self.assertRaises(KeyError, self.skip.__getitem__, "key2")
         self.assertEquals(self.skip["key1"], "value1")
         self.assertEquals(self.skip["key3"], "value3")
+
 
 class BehaveLikeDictTest(unittest.TestCase):
     "Check that the SkipDict has the same behavior of a dictionary"
