@@ -14,6 +14,12 @@ skip_is_empty(SkipDict *self) {
   return skip_first(self) == NULL;
 }
 
+/* Move to the next item */
+static inline skipitem *
+skip_get_next(skipitem *item) {
+  return item->next[0];
+}
+
 /* Find the previous pointer to the item we're looking for
  * or where the item should be inserted
  */
@@ -37,7 +43,7 @@ skip_get(SkipDict *self, PyObject *key) {
     SKIP_FIND_PREV(item, i, key);
   }
 
-  item = item->next[0];
+  item = skip_get_next(item);
 
   if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
     Py_INCREF(item->value);
@@ -61,7 +67,7 @@ skip_del(SkipDict *self, PyObject *key) {
     update[i] = item;
   }
 
-  item = item->next[0];
+  item = skip_get_next(item);
 
   /* delete the item only if the key already exists, otherwise
    * raise a KeyError
@@ -121,7 +127,7 @@ SkipDict_dealloc(SkipDict *self) {
 
   while (item != NULL) {
     tmp = item;
-    item = item->next[0];
+    item = skip_get_next(item);
 
     skipitem_free(tmp);
   }
@@ -169,7 +175,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
       update[i] = item;
     }
   
-    item = item->next[0];
+    item = skip_get_next(item);
 
     /* the key already exists, just update its value */
     if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
@@ -242,7 +248,7 @@ SkipDict_keys(SkipDict *self, PyObject *args) {
   for (i = 0; i < self->items_used; i++) {
     Py_INCREF(item->key);
     PyTuple_SetItem(tuple, i, item->key);
-    item = item->next[0];
+    item = skip_get_next(item);
   }
 
   return tuple;
@@ -260,7 +266,7 @@ SkipDict_has_key(SkipDict *self, PyObject *key) {
   for (i = self->level - 1; i >= 0; i--) {
     SKIP_FIND_PREV(item, i, key);
   }
-  item = item->next[0];
+  item = skip_get_next(item);
   if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
     return Py_True;
   } else return Py_False;
