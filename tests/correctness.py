@@ -37,6 +37,14 @@ class BasicTest(unittest.TestCase):
         self.assertEquals(self.skip["key1"], "value1")
         self.assertEquals(self.skip["key3"], "value3")
 
+    def test_has_key(self):
+        "Test has_key membership operator"
+        self.skip["key1"] = "value1"
+        self.skip["key2"] = "value2"
+        self.skip["key3"] = "value3"
+        self.assertTrue(self.skip.has_key("key1"))
+        self.assertTrue(self.skip.has_key("key2"))
+        self.assertTrue(not self.skip.has_key("key4"))
 
 class BehaveLikeDictTest(unittest.TestCase):
     "Check that the SkipDict has the same behavior of a dictionary"

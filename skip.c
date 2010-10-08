@@ -203,7 +203,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
 static int
 SkipDict_setItem(SkipDict *self, PyObject *key, PyObject *value) {
   if (!value) {
-    if (!skip_del(self, key) != NULL) return -1;
+    if (skip_del(self, key) != Py_None) return -1;
   } else {
     Py_INCREF(key);
     Py_INCREF(value);
@@ -253,6 +253,19 @@ SkipDict_length(SkipDict *self) {
   return Py_BuildValue("i", skip_length(self));
 }
 
+static PyObject *
+SkipDict_has_key(SkipDict *self, PyObject *key) {
+  int i;
+  skipitem *item = self->header;
+  for (i = self->level - 1; i >= 0; i--) {
+    SKIP_FIND_PREV(item, i, key);
+  }
+  item = item->next[0];
+  if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
+    return Py_True;
+  } else return Py_False;
+}
+
 static Py_ssize_t
 SkipDict_length_map(SkipDict *self) {
   return (Py_ssize_t)skip_length(self);
@@ -275,6 +288,7 @@ SkipDict_methods[] = {
            "If key is not found, KeyError is raised."},
   { "keys", (PyCFunction)SkipDict_keys, METH_VARARGS,
             "Returns an iterator over the keys of the dictionary" },
+  { "has_key", (PyCFunction)SkipDict_has_key, METH_O, 0 },
 
   /* special methods */
   { "__len__", (PyCFunction)SkipDict_length, METH_NOARGS | METH_COEXIST, 0 },
