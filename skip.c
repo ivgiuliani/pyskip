@@ -259,17 +259,17 @@ SkipDict_pop(SkipDict *self, PyObject *args) {
 static PyObject *
 SkipDict_keys(SkipDict *self, PyObject *args) {
   /* Returns a tuple with all the skipdict's keys */
-  PyObject *tuple = PyTuple_New(self->items_used);
+  PyObject *list = PyList_New(self->items_used);
   Py_ssize_t i;
   skipitem *item = skip_first(self);
 
   for (i = 0; i < self->items_used; i++) {
     Py_INCREF(item->key);
-    PyTuple_SetItem(tuple, i, item->key);
+    PyList_SetItem(list, i, item->key);
     item = skip_get_next(item);
   }
 
-  return tuple;
+  return list;
 }
 
 static PyObject *

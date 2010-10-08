@@ -77,6 +77,9 @@ class BehaveLikeDictTest(unittest.TestCase):
         self.assertIn("banana", keys)
         self.assertIn("pear", keys)
 
+        self.assertTrue(isinstance(keys, list),
+                ".keys() should return a list and not a tuple")
+
     def test_has_key(self):
         "Test has_key membership operator"
         self.skip["key1"] = "value1"
