@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-import gc
+import random
 import sys
 import time
-from functools import wraps
 from skip import SkipDict
 
 class timed(object):
@@ -14,7 +13,7 @@ class timed(object):
             start = time.time()
             f(*args, **kwargs)
             stop = time.time()
-            self.output.write("{0:35}: {1:6.6f} seconds\n".format(test_name, stop - start, ))
+            self.output.write("{0:50}: {1:6.6f} seconds\n".format(test_name, stop - start, ))
         return wrapper
 
 def benchmark(items=1000000, output=sys.stdout):
@@ -52,8 +51,26 @@ def benchmark(items=1000000, output=sys.stdout):
     test_length("SkipDict len", skip, items * 2 - 1)
     test_length("Dict len", dictionary, items * 2 - 1)
 
+def sort_benchmarks(items=100000, output=sys.stdout):
+    random.seed()
+    randints = [random.randint(0, 100) for x in xrange(0, items)]
+
+    @timed(output=output)
+    def test_sort_dict():
+        sorted(dict([(i, i) for i in randints]).keys())
+
+    @timed(output=output)
+    def test_sort_skipdict():
+        SkipDict([(i, i) for i in randints]).keys()
+
+    test_sort_dict("Test insert and sort %d keys (dict)" % items)
+    test_sort_skipdict("Test insert and sort %d keys (skipdict)" % items)
+
 def main(args):
     benchmark()
+    sort_benchmarks(100)
+    sort_benchmarks(1000000)
+    sort_benchmarks(2000000)
     return False
 
 if __name__ == '__main__':
