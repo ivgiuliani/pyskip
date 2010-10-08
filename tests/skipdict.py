@@ -62,7 +62,7 @@ class SkipDictTest(unittest.TestCase):
             def __init__(self, val):
                 self.val = val
             def __lt__(self, other):
-                return self.val < other
+                return self.val < other.val
             def __repr__(self):
                 return str(self.val)
 
