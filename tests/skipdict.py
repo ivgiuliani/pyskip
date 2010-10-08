@@ -46,6 +46,22 @@ class SkipDictTest(unittest.TestCase):
 
         self.assertEqual(len(self.skip), 3)
 
+    def test_uniformity_reset(self):
+        """
+        Verify that once the dict has been cleared we can fill it again with
+        a different type of keys
+        """
+        self.skip["string1"] = 1
+        self.skip["string2"] = 2
+        self.skip.clear()
+
+        self.skip[0] = 0
+        self.skip[1] = 1
+        del self.skip[0]
+        del self.skip[1]
+
+        self.skip["string1"] = "everything works"
+
     def test_ordered_string_keys(self):
         """
         Test that .keys() returns keys in sorted order with

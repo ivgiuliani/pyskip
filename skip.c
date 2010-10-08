@@ -85,6 +85,12 @@ skip_del(SkipDict *self, PyObject *key) {
       self->level--;
     }
     self->items_used--;
+
+    /* if we deleted the last item reset the type uniformity */
+    if (self->items_used == 0) {
+      self->type = NULL;
+    }
+
     Py_RETURN_NONE;
   }
 
