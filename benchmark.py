@@ -36,17 +36,17 @@ def benchmark(items=1000000, output=sys.stdout):
         "Count items in the dictionary"
         assert(len(d) == items)
 
-    test_add("SkipDict item add", skip, items)
-    test_add("Dict item add", dictionary, items)
+    test_add("SkipDict item add %d keys" % items, skip, items)
+    test_add("Dict item add %d keys" % items, dictionary, items)
 
-    test_find("SkipDict item find", skip)
-    test_find("Dict item find", dictionary)
+    test_find("SkipDict item find %d keys" % items, skip)
+    test_find("Dict item find %d keys" % items, dictionary)
 
     test_length("SkipDict len", skip, items - 1)
     test_length("Dict len", dictionary, items - 1)
 
-    test_add("SkipDict item successive large add", skip, items * 2)
-    test_add("Dict item successive large add", dictionary, items * 2)
+    test_add("SkipDict item successive add of %d keys" % (items * 2), skip, items * 2)
+    test_add("Dict item successive add of %d keys" % (items * 2), dictionary, items * 2)
 
     test_length("SkipDict len", skip, items * 2 - 1)
     test_length("Dict len", dictionary, items * 2 - 1)
