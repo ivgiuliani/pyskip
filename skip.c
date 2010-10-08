@@ -122,15 +122,7 @@ SkipDict_init(SkipDict *self, PyObject *args, PyObject *kwargs) {
 
 static void
 SkipDict_dealloc(SkipDict *self) {
-  skipitem *item = self->header->next[0];
-  skipitem *tmp;
-
-  while (item != NULL) {
-    tmp = item;
-    item = skip_get_next(item);
-
-    skipitem_free(tmp);
-  }
+  SkipDict_clear(self);
 
   PyMem_Free(self->header->next);
   PyMem_Free(self->header);
@@ -218,6 +210,26 @@ SkipDict_setItem(SkipDict *self, PyObject *key, PyObject *value) {
   return 0;
 }
 
+PyObject *
+SkipDict_clear(SkipDict *self) {
+  skipitem *item = skip_first(self);
+  skipitem *next;
+
+  while (item) {
+    Py_DECREF(item->key);
+    Py_DECREF(item->value);
+
+    next = skip_get_next(item);
+    skipitem_free(item);
+    item = next;
+  }
+
+  /* reinit the dict */
+  SkipDict_init(self, NULL, NULL);
+
+  Py_RETURN_NONE;
+}
+
 static PyObject *
 SkipDict_get(SkipDict *self, PyObject *key) {
   return skip_get(self, key);;
@@ -285,7 +297,9 @@ SkipDict_repr(SkipDict *self) {
 
 static PyMethodDef
 SkipDict_methods[] = {
-  { "get", (PyCFunction)SkipDict_get, METH_O | METH_COEXIST,
+  { "clear", (PyCFunction)SkipDict_clear, METH_NOARGS,
+           "Clear the whole dictionary" },
+  { "get", (PyCFunction)SkipDict_get, METH_O,
            "Get key's value" },
   { "set", (PyCFunction)SkipDict_set, METH_VARARGS,
            "Set the value of a key" },

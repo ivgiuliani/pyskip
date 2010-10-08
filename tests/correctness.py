@@ -86,6 +86,18 @@ class BehaveLikeDictTest(unittest.TestCase):
         self.assertTrue(self.skip.has_key("key2"))
         self.assertTrue(not self.skip.has_key("key4"))
 
+    def test_clear(self):
+        "Test clear() of the whole dict"
+        self.skip["key1"] = "key1"
+        self.skip["key2"] = "key2"
+        self.skip["key3"] = "key3"
+        self.skip.clear()
+        with self.assertRaises(KeyError):
+            self.skip["key1"]
+            self.skip["key2"]
+            self.skip["key3"]
+        self.assertEqual(len(self.skip), 0)
+
 
 class SpecialMethodsTest(unittest.TestCase):
     "Test for the __magic__ methods"
