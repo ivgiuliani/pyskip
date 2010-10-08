@@ -27,6 +27,16 @@ class BasicTest(unittest.TestCase):
         self.skip["key"] = "modified"
         self.assertEqual(self.skip["key"], "modified")
 
+    def test_delete(self):
+        "Test key deletion"
+        self.skip["key1"] = "value1"
+        self.skip["key2"] = "value2"
+        self.skip["key3"] = "value3"
+        del self.skip["key2"]
+        self.assertRaises(KeyError, self.skip.__setitem__, "key2")
+        self.assertEquals(self.skip["key1"], "value1")
+        self.assertEquals(self.skip["key3"], "value3")
+
     def test_uniform_type(self):
         "Check that the skipdict allows only uniform types as keys"
 
