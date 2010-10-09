@@ -9,13 +9,13 @@ SkipDict_first(SkipDict *self) {
 }
 
 /* Checks if the list is empty or not */
-static inline int
+inline int
 SkipDict_is_empty(SkipDict *self) {
   return SkipDict_first(self) == NULL;
 }
 
 /* Move to the next item */
-static inline skipitem *
+inline skipitem *
 skipitem_get_next(skipitem *item) {
   return item->next[0];
 }
@@ -169,13 +169,12 @@ SkipDict_set(SkipDict *self, PyObject *args) {
   Py_RETURN_NONE;
 }
 
+/* Set a `key` to `value` or delete the key if value is NULL */
 int
 SkipDict_setItem(SkipDict *self, PyObject *key, PyObject *value) {
   if (!value) {
     if (SkipDict_del(self, key) != Py_None) return -1;
   } else {
-    Py_INCREF(key);
-    Py_INCREF(value);
     if (!SkipDict_set(self, Py_BuildValue("OO", key, value))) return -1;
   }
   return 0;
