@@ -270,8 +270,8 @@ SkipDict_has_key(SkipDict *self, PyObject *key) {
   }
   item = skipitem_get_next(item);
   if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
-    return Py_True;
-  } else return Py_False;
+    Py_RETURN_TRUE;
+  } else Py_RETURN_FALSE;
 }
 
 Py_ssize_t
