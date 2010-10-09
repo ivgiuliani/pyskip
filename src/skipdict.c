@@ -20,41 +20,6 @@ skip_get_next(skipitem *item) {
   return item->next[0];
 }
 
-/* Find the previous pointer to the item we're looking for
- * or where the item should be inserted
- */
-#define SKIP_FIND_PREV(item, level, key) do {\
-  while ((item->next[level] != NULL) && \
-         (PyObject_RichCompareBool(item->next[level]->key, key, Py_LT))) { \
-    item = item->next[level]; \
-  } \
-} while(0);
-
-/* Returns the value of the key `key` or raise a KeyError if it doesn't exist */
-static PyObject *
-skip_get(SkipDict *self, PyObject *key) {
-  skipitem *item = self->header;
-  int i;
-
-  /* Even though this may seem O(n^2) it's O(n) in the worst case
-   * and O(logn) in the average case
-   */
-  for (i = self->level - 1; i >= 0; i--) {
-    SKIP_FIND_PREV(item, i, key);
-  }
-
-  item = skip_get_next(item);
-
-  if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
-    Py_INCREF(item->value);
-    return item->value;
-  }
-
-  /* the key we're looking for is not in the skipdict */
-  PyErr_SetObject(PyExc_KeyError, key);
-  return NULL;
-}
-
 /* Deletes the item with the key `key` from the skiplist */
 static PyObject *
 skip_del(SkipDict *self, PyObject *key) {
@@ -236,9 +201,29 @@ SkipDict_clear(SkipDict *self) {
   Py_RETURN_NONE;
 }
 
+/* Returns the value of the key `key` or raise a KeyError if it doesn't exist */
 PyObject *
 SkipDict_get(SkipDict *self, PyObject *key) {
-  return skip_get(self, key);;
+  skipitem *item = self->header;
+  int i;
+
+  /* Even though this may seem O(n^2) it's O(n) in the worst case
+   * and O(logn) in the average case
+   */
+  for (i = self->level - 1; i >= 0; i--) {
+    SKIP_FIND_PREV(item, i, key);
+  }
+
+  item = skip_get_next(item);
+
+  if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
+    Py_INCREF(item->value);
+    return item->value;
+  }
+
+  /* the key we're looking for is not in the skipdict */
+  PyErr_SetObject(PyExc_KeyError, key);
+  return NULL;
 }
 
 PyObject *
@@ -250,7 +235,7 @@ SkipDict_pop(SkipDict *self, PyObject *args) {
     return NULL;
   }
 
-  ret = Py_BuildValue("O", skip_get(self, key));
+  ret = Py_BuildValue("O", SkipDict_get(self, key));
   skip_del(self, key);
 
   return ret;

@@ -38,4 +38,14 @@ PyObject *SkipDict_keys(SkipDict *, PyObject *);
 PyObject *SkipDict_has_key(SkipDict *, PyObject *);
 PyObject *SkipDict_length(SkipDict *);
 
+/* Find the previous pointer to the item we're looking for
+ * or where the item should be inserted
+ */
+#define SKIP_FIND_PREV(item, level, key) do {\
+  while ((item->next[level] != NULL) && \
+         (PyObject_RichCompareBool(item->next[level]->key, key, Py_LT))) { \
+    item = item->next[level]; \
+  } \
+} while(0);
+
 #endif /* SKIPDICT_H */
