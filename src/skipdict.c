@@ -258,7 +258,7 @@ SkipDict_keys(SkipDict *self, PyObject *args) {
 
 PyObject *
 SkipDict_length(SkipDict *self) {
-  return Py_BuildValue("i", self->items_used);
+  return PyInt_FromSsize_t(self->items_used);
 }
 
 PyObject *
