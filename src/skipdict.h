@@ -33,6 +33,7 @@ Py_ssize_t SkipDict_length_map(SkipDict *);
 PyObject *SkipDict_set(SkipDict *, PyObject *);
 int SkipDict_setItem(SkipDict *, PyObject *, PyObject *);
 PyObject *SkipDict_get(SkipDict *, PyObject *);
+PyObject *SkipDict_del(SkipDict *, PyObject *);
 PyObject *SkipDict_pop(SkipDict *, PyObject *);
 PyObject *SkipDict_keys(SkipDict *, PyObject *);
 PyObject *SkipDict_has_key(SkipDict *, PyObject *);

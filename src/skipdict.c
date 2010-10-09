@@ -10,57 +10,14 @@ SkipDict_first(SkipDict *self) {
 
 /* Checks if the list is empty or not */
 static inline int
-skip_is_empty(SkipDict *self) {
+SkipDict_is_empty(SkipDict *self) {
   return SkipDict_first(self) == NULL;
 }
 
 /* Move to the next item */
 static inline skipitem *
-skip_get_next(skipitem *item) {
+skipitem_get_next(skipitem *item) {
   return item->next[0];
-}
-
-/* Deletes the item with the key `key` from the skiplist */
-static PyObject *
-skip_del(SkipDict *self, PyObject *key) {
-  skipitem *item = self->header;
-  skipitem *update[MAX_LEVELS];
-  int i;
-
-  for (i = self->level - 1; i >= 0; i--) {
-    SKIP_FIND_PREV(item, i, key);
-    update[i] = item;
-  }
-
-  item = skip_get_next(item);
-
-  /* delete the item only if the key already exists, otherwise
-   * raise a KeyError
-   */
-  if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
-    for (i = 0; i < self->level; i++) {
-      if (update[i]->next[i] != item) break;
-      update[i]->next[i] = item->next[i];
-    }
-
-    Py_DECREF(item->key);
-    skipitem_free(item);
-
-    while (self->level > 1 && self->header->next[self->level - 1] == NULL) {
-      self->level--;
-    }
-    self->items_used--;
-
-    /* if we deleted the last item reset the type uniformity */
-    if (self->items_used == 0) {
-      self->type = NULL;
-    }
-
-    Py_RETURN_NONE;
-  }
-
-  PyErr_SetObject(PyExc_KeyError, key);
-  return NULL;
 }
 
 int
@@ -99,6 +56,49 @@ SkipDict_dealloc(SkipDict *self) {
   PyMem_Free(self->header);
 }
 
+/* Deletes the item with the key `key` from the skiplist */
+PyObject *
+SkipDict_del(SkipDict *self, PyObject *key) {
+  skipitem *item = self->header;
+  skipitem *update[MAX_LEVELS];
+  int i;
+
+  for (i = self->level - 1; i >= 0; i--) {
+    SKIP_FIND_PREV(item, i, key);
+    update[i] = item;
+  }
+
+  item = skipitem_get_next(item);
+
+  /* delete the item only if the key already exists, otherwise
+   * raise a KeyError
+   */
+  if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
+    for (i = 0; i < self->level; i++) {
+      if (update[i]->next[i] != item) break;
+      update[i]->next[i] = item->next[i];
+    }
+
+    Py_DECREF(item->key);
+    skipitem_free(item);
+
+    while (self->level > 1 && self->header->next[self->level - 1] == NULL) {
+      self->level--;
+    }
+    self->items_used--;
+
+    /* if we deleted the last item reset the type uniformity */
+    if (self->items_used == 0) {
+      self->type = NULL;
+    }
+
+    Py_RETURN_NONE;
+  }
+
+  PyErr_SetObject(PyExc_KeyError, key);
+  return NULL;
+}
+
 /* Set the key `key` to value `value` */
 PyObject *
 SkipDict_set(SkipDict *self, PyObject *args) {
@@ -125,7 +125,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
 
   level = skip_random_level();
 
-  if (skip_is_empty(self)) {
+  if (SkipDict_is_empty(self)) {
     for (i = 0; i < self->level; i++) update[i] = self->header;
   } else {
     for (i = self->level - 1; i >= 0; i--) {
@@ -138,7 +138,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
       update[i] = item;
     }
   
-    item = skip_get_next(item);
+    item = skipitem_get_next(item);
 
     /* the key already exists, just update its value */
     if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
@@ -172,7 +172,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
 int
 SkipDict_setItem(SkipDict *self, PyObject *key, PyObject *value) {
   if (!value) {
-    if (skip_del(self, key) != Py_None) return -1;
+    if (SkipDict_del(self, key) != Py_None) return -1;
   } else {
     Py_INCREF(key);
     Py_INCREF(value);
@@ -190,7 +190,7 @@ SkipDict_clear(SkipDict *self) {
     Py_DECREF(item->key);
     Py_DECREF(item->value);
 
-    next = skip_get_next(item);
+    next = skipitem_get_next(item);
     skipitem_free(item);
     item = next;
   }
@@ -214,7 +214,7 @@ SkipDict_get(SkipDict *self, PyObject *key) {
     SKIP_FIND_PREV(item, i, key);
   }
 
-  item = skip_get_next(item);
+  item = skipitem_get_next(item);
 
   if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
     Py_INCREF(item->value);
@@ -236,7 +236,7 @@ SkipDict_pop(SkipDict *self, PyObject *args) {
   }
 
   ret = Py_BuildValue("O", SkipDict_get(self, key));
-  skip_del(self, key);
+  SkipDict_del(self, key);
 
   return ret;
 }
@@ -251,7 +251,7 @@ SkipDict_keys(SkipDict *self, PyObject *args) {
   for (i = 0; i < self->items_used; i++) {
     Py_INCREF(item->key);
     PyList_SetItem(list, i, item->key);
-    item = skip_get_next(item);
+    item = skipitem_get_next(item);
   }
 
   return list;
@@ -259,7 +259,7 @@ SkipDict_keys(SkipDict *self, PyObject *args) {
 
 PyObject *
 SkipDict_length(SkipDict *self) {
-  return Py_BuildValue("i", skip_length(self));
+  return Py_BuildValue("i", self->items_used);
 }
 
 PyObject *
@@ -269,7 +269,7 @@ SkipDict_has_key(SkipDict *self, PyObject *key) {
   for (i = self->level - 1; i >= 0; i--) {
     SKIP_FIND_PREV(item, i, key);
   }
-  item = skip_get_next(item);
+  item = skipitem_get_next(item);
   if (item && PyObject_RichCompareBool(item->key, key, Py_EQ)) {
     return Py_True;
   } else return Py_False;
@@ -277,7 +277,7 @@ SkipDict_has_key(SkipDict *self, PyObject *key) {
 
 Py_ssize_t
 SkipDict_length_map(SkipDict *self) {
-  return (Py_ssize_t)skip_length(self);
+  return (Py_ssize_t)self->items_used;
 }
 
 PyObject *
@@ -327,11 +327,5 @@ skip_random_level() {
   while (((double)rand() / (RAND_MAX + 1.0) < PROB) && (level < MAX_LEVELS))
     level++;
   return level;
-}
-
-/* Returns skipdict's length (number of keys in the skipdict) */
-inline int
-skip_length(SkipDict *skip) {
-  return skip->items_used;
 }
 
