@@ -20,6 +20,7 @@ typedef struct {
   PyTypeObject *type;
 } SkipDict;
 
+inline skipitem *SkipDict_first(SkipDict *);
 skipitem *skipitem_new(PyObject *, PyObject *, int);
 void skipitem_free(skipitem *);
 int skip_random_level(void);

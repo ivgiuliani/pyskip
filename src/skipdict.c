@@ -2,16 +2,16 @@
 
 #include "skipdict.h"
 
-/* Returns a pointer to the first item in the list */
-static inline skipitem *
-skip_first(SkipDict *self) {
+/* Returns a pointer to the first item in the SkipDict */
+inline skipitem *
+SkipDict_first(SkipDict *self) {
   return self->header->next[0];
 }
 
 /* Checks if the list is empty or not */
 static inline int
 skip_is_empty(SkipDict *self) {
-  return skip_first(self) == NULL;
+  return SkipDict_first(self) == NULL;
 }
 
 /* Move to the next item */
@@ -218,7 +218,7 @@ SkipDict_setItem(SkipDict *self, PyObject *key, PyObject *value) {
 
 PyObject *
 SkipDict_clear(SkipDict *self) {
-  skipitem *item = skip_first(self);
+  skipitem *item = SkipDict_first(self);
   skipitem *next;
 
   while (item) {
@@ -261,7 +261,7 @@ SkipDict_keys(SkipDict *self, PyObject *args) {
   /* Returns a tuple with all the skipdict's keys */
   PyObject *list = PyList_New(self->items_used);
   Py_ssize_t i;
-  skipitem *item = skip_first(self);
+  skipitem *item = SkipDict_first(self);
 
   for (i = 0; i < self->items_used; i++) {
     Py_INCREF(item->key);
