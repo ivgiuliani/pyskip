@@ -3,8 +3,11 @@
 
 #include <Python.h>
 
-#define PROB 0.5
-#define MAX_LEVELS 32
+/* Keep this to the size of a cpu register, the random level
+ * generation function relies on this number to be contained
+ * into a single register
+ */
+#define SKIPDICT_MAX_LEVELS 32
 
 typedef struct _skipitem {
   PyObject *key;
@@ -23,7 +26,7 @@ typedef struct {
 inline skipitem *SkipDict_first(SkipDict *);
 skipitem *skipitem_new(PyObject *, PyObject *, int);
 void skipitem_free(skipitem *);
-int generate_random_level(void);
+unsigned short int generate_random_level(void);
 int SkipDict_init(SkipDict *, PyObject *, PyObject *);
 void SkipDict_dealloc(SkipDict *);
 PyObject *SkipDict_repr(SkipDict *);

@@ -38,11 +38,13 @@ SkipDict_init(SkipDict *self, PyObject *args, PyObject *kwargs) {
   if (self->header == NULL)
     return -1;
 
-  self->header->next = PyMem_Malloc(MAX_LEVELS * sizeof(skipitem *));
+  self->header->next = PyMem_Malloc(
+      SKIPDICT_MAX_LEVELS * sizeof(skipitem *)
+  );
   if (self->header->next == NULL)
     return -1;
 
-  for (i = 0; i < MAX_LEVELS; i++)
+  for (i = 0; i < SKIPDICT_MAX_LEVELS; i++)
     self->header->next[i] = NULL;
 
   return 0;
@@ -60,7 +62,7 @@ SkipDict_dealloc(SkipDict *self) {
 PyObject *
 SkipDict_del(SkipDict *self, PyObject *key) {
   skipitem *item = self->header;
-  skipitem *update[MAX_LEVELS];
+  skipitem *update[SKIPDICT_MAX_LEVELS];
   int i;
 
   for (i = self->level - 1; i >= 0; i--) {
@@ -104,7 +106,7 @@ PyObject *
 SkipDict_set(SkipDict *self, PyObject *args) {
   PyObject *key, *value;
   skipitem *item = self->header;
-  skipitem *update[MAX_LEVELS];
+  skipitem *update[SKIPDICT_MAX_LEVELS];
   int i, level;
 
   if (!PyArg_ParseTuple(args, "OO", &key, &value)) {
@@ -326,11 +328,20 @@ skipitem_free(skipitem *item) {
 }
 
 /* Generate a new random level */
-int
+unsigned short int
 generate_random_level() {
-  int level = 1;
-  while (((double)rand() / (RAND_MAX + 1.0) < PROB) && (level < MAX_LEVELS))
-    level++;
+  /* We count the number of bits set in a 32bit integer. We go
+   * through as many iterations as there are bits set.
+   * This is the "Brian Kernighan"'s method, published in "The
+   * C Programming Language 2nd Ed."
+   */
+  register uint32_t bitseed = rand() % UINT32_MAX;
+  unsigned short int level;
+
+  for (level = 0; bitseed; level++) {
+    bitseed &= bitseed - 1;
+  }
+
   return level;
 }
 
