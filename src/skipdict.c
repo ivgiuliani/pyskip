@@ -159,6 +159,12 @@ SkipDict_set(SkipDict *self, PyObject *args) {
 
   /* create the item and update the pointers */
   item = skipitem_new(key, value, level);
+  if (!item) {
+    PyErr_SetString(PyExc_SystemError,
+        "can't create new item, memory allocation failed");
+    return NULL;
+  }
+
   for (i = 0; i < level; i++) {
     item->next[i] = update[i]->next[i];
     update[i]->next[i] = item;
