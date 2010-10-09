@@ -41,8 +41,8 @@ PyObject *SkipDict_keys(SkipDict *, PyObject *);
 PyObject *SkipDict_has_key(SkipDict *, PyObject *);
 PyObject *SkipDict_length(SkipDict *);
 
-/* Find the previous pointer to the item we're looking for
- * or where the item should be inserted
+/* Moves `item` to the previous pointer wrt the `key` we're
+ * looking for on level `level`
  */
 #define SKIP_FIND_PREV(item, level, key) do {\
   while ((item->next[level] != NULL) && \

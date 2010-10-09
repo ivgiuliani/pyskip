@@ -125,8 +125,6 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     return NULL;
   }
 
-  level = generate_random_level();
-
   if (SkipDict_is_empty(self)) {
     for (i = 0; i < self->level; i++) update[i] = self->header;
   } else {
@@ -149,10 +147,11 @@ SkipDict_set(SkipDict *self, PyObject *args) {
       Py_RETURN_NONE;
     }
   }
-  
+
   /* if the new item's level is higher than the current list level
    * just update the item's level by one
    */
+  level = generate_random_level();
   if (level > self->level) {
     update[self->level] = self->header;
     self->level++;
@@ -171,13 +170,14 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     item->next[i] = update[i]->next[i];
     update[i]->next[i] = item;
   }
+
   /* increment items count */
   self->items_used++;
 
   Py_RETURN_NONE;
 }
 
-/* Set a `key` to `value` or delete the key if value is NULL */
+/* Set a `key` to `value` or delete the key if `value` is NULL */
 int
 SkipDict_setItem(SkipDict *self, PyObject *key, PyObject *value) {
   if (!value) {
@@ -309,11 +309,11 @@ skipitem_new(PyObject *key, PyObject *value, int level) {
   item->key = key;
   item->value = value;
 
-  item->next = PyMem_Malloc((level + 1) * sizeof(skipitem *));
+  item->next = PyMem_New(skipitem *, level + 1);
   if (item->next == NULL)
     return NULL;
-  for (i = 0; i < level; i++)
-    item->next[i] = NULL;
+
+  memset(item->next, 0, (level + 1) * sizeof(skipitem *));
 
   return item;
 }
