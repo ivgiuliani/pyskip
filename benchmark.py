@@ -56,15 +56,15 @@ def sort_benchmarks(items=100000, output=sys.stdout):
     randints = [random.randint(0, 100) for x in xrange(0, items)]
 
     @timed(output=output)
-    def test_sort_dict():
-        sorted(dict([(i, i) for i in randints]).keys())
-
-    @timed(output=output)
     def test_sort_skipdict():
         SkipDict([(i, i) for i in randints]).keys()
 
-    test_sort_dict("Test insert and sort %d keys (dict)" % items)
+    @timed(output=output)
+    def test_sort_dict():
+        sorted(dict([(i, i) for i in randints]).keys())
+
     test_sort_skipdict("Test insert and sort %d keys (skipdict)" % items)
+    test_sort_dict("Test insert and sort %d keys (dict)" % items)
 
 def main(args):
     benchmark()
