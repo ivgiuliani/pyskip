@@ -123,7 +123,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
     return NULL;
   }
 
-  level = skip_random_level();
+  level = generate_random_level();
 
   if (SkipDict_is_empty(self)) {
     for (i = 0; i < self->level; i++) update[i] = self->header;
@@ -322,7 +322,7 @@ skipitem_free(skipitem *item) {
 
 /* Generate a new random level */
 int
-skip_random_level() {
+generate_random_level() {
   int level = 1;
   while (((double)rand() / (RAND_MAX + 1.0) < PROB) && (level < MAX_LEVELS))
     level++;

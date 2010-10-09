@@ -23,7 +23,7 @@ typedef struct {
 inline skipitem *SkipDict_first(SkipDict *);
 skipitem *skipitem_new(PyObject *, PyObject *, int);
 void skipitem_free(skipitem *);
-int skip_random_level(void);
+int generate_random_level(void);
 inline int skip_length(SkipDict *);
 int SkipDict_init(SkipDict *, PyObject *, PyObject *);
 void SkipDict_dealloc(SkipDict *);
