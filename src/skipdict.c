@@ -149,7 +149,7 @@ SkipDict_set(SkipDict *self, PyObject *args) {
   }
   
   /* if the new item's level is higher than the current list level
-   * just update the level by one
+   * just update the item's level by one
    */
   if (level > self->level) {
     update[self->level] = self->header;
@@ -233,17 +233,17 @@ SkipDict_get(SkipDict *self, PyObject *key) {
 
 PyObject *
 SkipDict_pop(SkipDict *self, PyObject *args) {
-  PyObject *key, *ret;
+  PyObject *key, *value;
 
   if (!PyArg_ParseTuple(args, "O", &key)) {
     PyErr_SetString(PyExc_SyntaxError, "Parameters missing");
     return NULL;
   }
 
-  ret = Py_BuildValue("O", SkipDict_get(self, key));
+  value = SkipDict_get(self, key);
   SkipDict_del(self, key);
 
-  return ret;
+  return value;
 }
 
 PyObject *
@@ -282,7 +282,7 @@ SkipDict_has_key(SkipDict *self, PyObject *key) {
 
 Py_ssize_t
 SkipDict_length_map(SkipDict *self) {
-  return (Py_ssize_t)self->items_used;
+  return self->items_used;
 }
 
 PyObject *
