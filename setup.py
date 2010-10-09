@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 
 module = Extension(
     "skip",
-    sources = ["src/skip.c"],
+    sources = ["src/skip.c", "src/skipdict.c"],
 )
 
 setup(  name = "pyskip",
